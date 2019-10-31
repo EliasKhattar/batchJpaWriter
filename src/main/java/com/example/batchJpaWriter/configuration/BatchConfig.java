@@ -137,7 +137,7 @@ public class BatchConfig {
     public InvoiceProcessingItemReader reader() throws Exception {
 
         InvoiceProcessingItemReader invoiceProcessingItemReader = new InvoiceProcessingItemReader();
-        invoiceProcessingItemReader.setFieldSetReader(readers(21));
+        invoiceProcessingItemReader.setFieldSetReader(readers(22));
 
         return invoiceProcessingItemReader;
     }
