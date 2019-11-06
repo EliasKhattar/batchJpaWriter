@@ -71,6 +71,7 @@ public class InvoiceParty extends InvoiceProcessing{
     private String isfAssociateId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invoiceParty_id")
-    private InvoiceHeader invoiceParty;
+    @JoinColumn(name = "invoiceHeader_id")
+    private InvoiceHeader invoiceHeader;
+
 }

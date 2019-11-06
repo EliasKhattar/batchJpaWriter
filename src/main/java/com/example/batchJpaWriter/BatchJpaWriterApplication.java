@@ -10,4 +10,5 @@ public class BatchJpaWriterApplication {
 		SpringApplication.run(BatchJpaWriterApplication.class, args);
 	}
 
+
 }

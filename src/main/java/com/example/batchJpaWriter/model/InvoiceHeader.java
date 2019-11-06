@@ -166,8 +166,11 @@ public class InvoiceHeader extends InvoiceProcessing{
     @Size(max = 2)
     private String vendorOrderPoint;
 
-    @OneToMany(mappedBy = "invoiceParty", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "invoiceHeader", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceParty> invoiceParty = new ArrayList<>();
+
+    @OneToMany(mappedBy = "genericFields", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GenericFields> genericFields = new ArrayList<>();
 
     public void setPkgQty(Integer pkgQty) {
         if(pkgQty == null)

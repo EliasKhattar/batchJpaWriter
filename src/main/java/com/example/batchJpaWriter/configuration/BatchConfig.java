@@ -1,9 +1,7 @@
 package com.example.batchJpaWriter.configuration;
 
 import com.example.batchJpaWriter.batchreader.InvoiceProcessingItemReader;
-import com.example.batchJpaWriter.model.InvoiceHeader;
-import com.example.batchJpaWriter.model.InvoiceParty;
-import com.example.batchJpaWriter.model.InvoiceProcessing;
+import com.example.batchJpaWriter.model.*;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -26,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 
 import javax.persistence.EntityManagerFactory;
@@ -68,7 +67,7 @@ public class BatchConfig {
                 .build();
     }
 
-    @Bean
+  /*  @Bean
     public Step step1() throws Exception {
 
         return stepBuilderFactory.get("calculateLinesToSkip")
@@ -85,10 +84,10 @@ public class BatchConfig {
                 .build();
     }
 
-    /**
+    *//**
      * Creating a count method to count the lines that should be skipped before start reading and mapping the data
      *@return Integer
-     */
+     *//*
 
     @StepScope
     public int count(@Value("#{jobParameters[file_path]}") String filePath) throws Exception {
@@ -110,25 +109,25 @@ public class BatchConfig {
                 System.out.println("Lines to skip " + count);
                 scanner.close();
                 return count;
-            }/*else{
+            }*//*else{
                System.out.println("File does not have header AZ!!!");
                System.out.println("arr : " + arr);
-           }*/
+           }*//*
 
         }
         scanner.close();
         return count;
     }
-
+*/
     @Bean
     public FlatFileItemReader readers(Integer linesToSkip) throws Exception {
 
-        final FileSystemResource fileSystemResource = new FileSystemResource("BOM9007134_1568194686037.ip");
+        //final FileSystemResource fileSystemResource = new FileSystemResource("BOM9007134_1568194686037.ip");
 
         return new FlatFileItemReaderBuilder()
                 .name("testItemReader")
-                .resource(fileSystemResource)
-                .linesToSkip(linesToSkip)
+                .resource(new ClassPathResource("BOM9007134_1568194686037.ip"))
+                .linesToSkip(22)
                 .lineMapper(ipLineMapper())
                 .build();
     }
@@ -157,6 +156,8 @@ public class BatchConfig {
         Map<String, LineTokenizer> tokenizers = new HashMap<String, LineTokenizer>();
         tokenizers.put("A*",invoiceHeaderTokenizer() );
         tokenizers.put("I*",invoicePartyTokenizer());
+        tokenizers.put("V*",genericFieldsTokenizer());
+        tokenizers.put("J*",declarationTokenizer());
 
 
         mapper.setTokenizers(tokenizers);
@@ -164,12 +165,13 @@ public class BatchConfig {
         Map<String, FieldSetMapper> mappers = new HashMap<String, FieldSetMapper>();
         mappers.put("A*", invoiceHeaderFieldSetMapper());
         mappers.put("I*", invoicePartyFieldSetMapper());
+        mappers.put("V*", genericFieldsFieldSetMapper());
+        mappers.put("J*", declarationFieldSetMapper());
 
 
         mapper.setFieldSetMappers(mappers);
 
         return mapper;
-
     }
 
     /**
@@ -235,4 +237,65 @@ public class BatchConfig {
         return new InvoiceParty();
     }
 
+    /**
+     * Creating Tokenizer and Mapper for Generic Fields
+     *@return GenericFields object
+     */
+
+    @Bean
+    public LineTokenizer genericFieldsTokenizer() {
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer(",");
+        tokenizer.setQuoteCharacter(DelimitedLineTokenizer.DEFAULT_QUOTE_CHARACTER);
+        tokenizer.setNames(new String[] { "recordId", "reserved","code","ref","date","qty","units"});
+        return tokenizer;
+    }
+
+    @Bean
+    public FieldSetMapper<GenericFields> genericFieldsFieldSetMapper() throws Exception {
+        BeanWrapperFieldSetMapper<GenericFields> mapper =
+                new BeanWrapperFieldSetMapper<GenericFields>();
+
+        mapper.setPrototypeBeanName("genericFields");
+        mapper.afterPropertiesSet();
+        return mapper;
+    }
+
+    @Bean
+    @Scope("prototype")
+    public GenericFields genericFields() {
+        return new GenericFields();
+    }
+
+    /**
+     * Creating Tokenizer and Mapper for Declaration
+     *@return Declaration object
+     */
+
+    @Bean
+    public LineTokenizer declarationTokenizer() {
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer(",");
+        tokenizer.setQuoteCharacter(DelimitedLineTokenizer.DEFAULT_QUOTE_CHARACTER);
+        tokenizer.setNames(new String[] { "recordId", "action","declNo","declDate","refNo","etmsFileNo","hbNo","mbNo","cargoControlNo","internationalTransChargs","insurance","modeOfTransp","originCode","destCode"
+                ,"voyFlightNo","voyFlightDate","airFrghtChrgDisc","portOfLand","portOfImpCode","arrivalPortImportDate","portOfDeclCode","arrivalPortDeclDate","lloydsCode","vesselName","declType"
+                ,"entryProcdType","carrierCode","containerized","cargoLoc","itNumber","itDate","manifestQty","manifestUom","grossWght","grossWghtUom","customsPortCode","portUnladingCode","interTranspChargCurr"
+                ,"insuranceCurr","volume","volumeUom","netWegiht","netWegihtUom","customsCateg","isfBillingOfLadingIssuer","isfCutOffDate","isuranceExchangeRate","transpExchangeRate","isfVendorId"});
+        return tokenizer;
+    }
+
+    @Bean
+    public FieldSetMapper<Declaration> declarationFieldSetMapper() throws Exception {
+        BeanWrapperFieldSetMapper<Declaration> mapper =
+                new BeanWrapperFieldSetMapper<Declaration>();
+
+        mapper.setPrototypeBeanName("declaration");
+        mapper.afterPropertiesSet();
+        return mapper;
+    }
+
+
+    @Bean
+    @Scope("prototype")
+    public Declaration declaration() {
+        return new Declaration();
+    }
 }
